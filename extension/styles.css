@@ -27,6 +27,20 @@
   transform: scale(0.95);
 }
 
+.qlothi-btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: qlothi-spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes qlothi-spin {
+  to { transform: rotate(360deg); }
+}
+
 .qlothi-overlay {
   z-index: 1000;
   /* Allow clicking through the empty space of the SVG to grab underlying images etc if needed, though pointer-events: none on the SVG itself handles this */

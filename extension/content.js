@@ -41,7 +41,8 @@ function injectButton() {
   if (saveBtn && saveBtn.parentNode) {
       btn.style.position = 'static'; // Remove absolute positioning
       btn.style.marginRight = '8px';
-      btn.style.height = '48px'; // Match Pinterest standard button height
+      // Match perfectly to the native Pinterest button next to it
+      btn.style.height = window.getComputedStyle(saveBtn).height || '48px';
       btn.style.display = 'inline-flex';
       
       // Get the container that holds the save button
@@ -76,7 +77,10 @@ function analyzeImage(imageUrl) {
   const btn = pinBtns.length > 0 ? pinBtns[pinBtns.length - 1] : null;
   const oldText = btn ? btn.innerHTML : '✨ Shop';
   
-  if (btn) btn.innerHTML = '✨ Fetching...';
+  if (btn) {
+    btn.innerHTML = '<div class="qlothi-btn-spinner"></div>';
+    btn.style.pointerEvents = 'none'; // prevent double clicks
+  }
 
   const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ success: false, error: 'Timeout waiting for background proxy.' }), 15000));
 
@@ -86,19 +90,19 @@ function analyzeImage(imageUrl) {
   ]).then((response) => {
     if (chrome.runtime.lastError) {
       alert("Extension Error: " + chrome.runtime.lastError.message);
-      if (btn) btn.innerHTML = oldText;
+      if (btn) { btn.innerHTML = oldText; btn.style.pointerEvents = 'auto'; }
       return;
     }
 
     if (!response || !response.success) {
       console.error("Failed to fetch image data via background:", response ? response.error : 'Unknown error');
       alert("Error: Could not read image data. " + (response ? response.error : ''));
-      if (btn) btn.innerHTML = oldText;
+      if (btn) { btn.innerHTML = oldText; btn.style.pointerEvents = 'auto'; }
       return;
     }
 
     const base64data = response.base64_image;
-    if (btn) btn.innerHTML = '✨ Analyzing: Hitting Server...';
+    // Spinner continues natively here, no text expansion needed.
 
     return Promise.race([
       new Promise(resolve => chrome.runtime.sendMessage({ action: "analyzeOutfit", base64_image: base64data }, resolve)),
@@ -109,12 +113,12 @@ function analyzeImage(imageUrl) {
     
     if (chrome.runtime.lastError) {
       alert("Extension Error talking to backend proxy: " + chrome.runtime.lastError.message);
-      if (btn) btn.innerHTML = oldText;
+      if (btn) { btn.innerHTML = oldText; btn.style.pointerEvents = 'auto'; }
       return;
     }
     
     console.log("Backend proxy response:", res);
-    if (btn) btn.innerHTML = oldText;
+    if (btn) { btn.innerHTML = oldText; btn.style.pointerEvents = 'auto'; }
     
     if (res.success) {
       const data = res.data;
@@ -130,7 +134,7 @@ function analyzeImage(imageUrl) {
   }).catch(err => {
     console.error("Critical error in analyze promise chain:", err);
     alert("Critical failure: " + err.message);
-    if (btn) btn.innerHTML = oldText;
+    if (btn) { btn.innerHTML = oldText; btn.style.pointerEvents = 'auto'; }
   });
 }
 
