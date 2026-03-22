@@ -14,7 +14,7 @@ function injectButton() {
 
   const btn = document.createElement('button');
   btn.className = 'qlothi-btn';
-  btn.innerHTML = '✨ Shop';
+  btn.innerHTML = 'Shop';
   
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -41,8 +41,11 @@ function injectButton() {
   if (saveBtn && saveBtn.parentNode) {
       btn.style.position = 'static'; // Remove absolute positioning
       btn.style.marginRight = '8px';
-      // Match perfectly to the native Pinterest button next to it
-      btn.style.height = window.getComputedStyle(saveBtn).height || '48px';
+      // Match perfectly to the native Pinterest button next to it logically
+      const computedBtn = window.getComputedStyle(saveBtn);
+      btn.style.height = computedBtn.height || '48px';
+      btn.style.borderRadius = computedBtn.borderRadius || '24px';
+      btn.style.padding = computedBtn.padding;
       btn.style.display = 'inline-flex';
       
       // Get the container that holds the save button
@@ -75,7 +78,7 @@ function analyzeImage(imageUrl) {
   
   const pinBtns = document.querySelectorAll('.qlothi-btn');
   const btn = pinBtns.length > 0 ? pinBtns[pinBtns.length - 1] : null;
-  const oldText = btn ? btn.innerHTML : '✨ Shop';
+  const oldText = btn ? btn.innerHTML : 'Shop';
   
   if (btn) {
     btn.innerHTML = '<div class="qlothi-btn-spinner"></div>';
