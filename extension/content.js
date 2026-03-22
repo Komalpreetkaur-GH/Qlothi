@@ -14,7 +14,7 @@ function injectButton() {
 
   const btn = document.createElement('button');
   btn.className = 'qlothi-btn';
-  btn.innerHTML = '✨ Analyze Outfit';
+  btn.innerHTML = '✨ Shop';
   
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -74,9 +74,9 @@ function analyzeImage(imageUrl) {
   
   const pinBtns = document.querySelectorAll('.qlothi-btn');
   const btn = pinBtns.length > 0 ? pinBtns[pinBtns.length - 1] : null;
-  const oldText = btn ? btn.innerHTML : '✨ Analyze Outfit';
+  const oldText = btn ? btn.innerHTML : '✨ Shop';
   
-  if (btn) btn.innerHTML = '✨ Analyzing: Fetching Image...';
+  if (btn) btn.innerHTML = '✨ Fetching...';
 
   const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ success: false, error: 'Timeout waiting for background proxy.' }), 15000));
 
