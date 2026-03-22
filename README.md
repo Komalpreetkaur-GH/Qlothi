@@ -88,5 +88,22 @@ Qlothi/
 
 ---
 
+## 🌐 Deployment
+
+### Part 1: FastAPI Backend (Hugging Face Spaces, Render, or Railway)
+Because the backend uses a heavy AI classification model (`Segformer`), it requires a cloud host with at least **2GB to 4GB of RAM**:
+1. Add a `Dockerfile` and push your `backend` directory to a GitHub repository.
+2. Link your GitHub repository to a cloud service like Render or Hugging Face.
+3. Configure the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Once successfully deployed, copy your new live URL (e.g., `https://qlothi-api.onrender.com`).
+
+### Part 2: Publish the Chrome Extension
+1. Open your extension's JavaScript files (`background.js`, `content.js`) and replace any instances of `http://localhost:8000` with your new live backend URL.
+2. Zip the entire `/extension` folder (make sure `manifest.json` is at the root of the zip file, and not buried in a subfolder).
+3. Navigate to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/).
+4. Click **New Item**, upload the Zip, fill out your store listing details, and click **Submit for Review**.
+
+---
+
 ## ⚖️ License
 MIT License. Created with ❤️ for fashion enthusiasts.
