@@ -349,8 +349,32 @@ async def visual_search(request: VisualSearchRequest):
             "items": []
         }
 
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"message": "Qlothi API is running."}
+    return """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Qlothi API Server</title>
+            <style>
+                body { font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; color: #111; }
+                .container { text-align: center; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                h1 { font-size: 2rem; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+                p { color: #666; margin-bottom: 2rem; }
+                footer { font-size: 14px; color: #888; font-weight: 500; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>✨ Qlothi Backend API</h1>
+                <p>The AI segmentation engine is online and listening for extension requests.</p>
+                <footer>Made with ❤️ by <strong>Kobuilds</strong></footer>
+            </div>
+        </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     import uvicorn
