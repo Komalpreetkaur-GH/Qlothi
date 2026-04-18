@@ -39,8 +39,8 @@ async function performOptimizedLensSearch(base64Image) {
 
   try {
     console.log("[Qlothi] Opening invisible Google Images tab...");
-    // 1. Open invisible tab
-    const tab = await chrome.tabs.create({ url: 'https://images.google.com/', active: false });
+    // 1. Open invisible tab (Forced to India to guarantee localized delivery)
+    const tab = await chrome.tabs.create({ url: 'https://images.google.co.in/', active: false });
     lensTabId = tab.id;
     
     // We MUST wait for the page to exist before injecting, otherwise Chrome blocks it
@@ -275,6 +275,10 @@ async function performOptimizedLensSearch(base64Image) {
                
                let price = extractPrice(rawText) || extractPrice(link.getAttribute('aria-label'));
 
+               // Drop known non-deliverable international domains
+               const badDomains = ['.co.uk', '.de', '.fr', '.au', '.ca', 'etsy.', 'ebay.com', 'walmart', 'target'];
+               if (badDomains.some(bd => link.href.toLowerCase().includes(bd))) return;
+
                seen.add(link.href);
                validCards.push({
                    name: name.substring(0, 80),
@@ -286,6 +290,9 @@ async function performOptimizedLensSearch(base64Image) {
                    reviews: Math.floor(Math.random() * 800) + 50
                });
             });
+
+            // Filter out clearly foreign currencies (like Euros and Pounds)
+            validCards = validCards.filter(card => !card.price.includes('€') && !card.price.includes('£'));
 
             if (validCards.length >= 4) {
                // We have successfully found results!
