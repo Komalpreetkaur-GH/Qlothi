@@ -39,12 +39,14 @@ LABEL_MAP = {
 }
 
 # Only show these as clickable shopping items
-SHOPPABLE_CLASSES = {1, 3, 4, 5, 6, 7, 8, 16, 17}
-# 1=hat, 3=sunglasses, 4=upper-clothes, 5=skirt, 6=pants, 7=dress, 8=belt, 16=bag, 17=scarf
+SHOPPABLE_CLASSES = {1, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17}
+# 1=hat, 3=sunglasses, 4=upper-clothes, 5=skirt, 6=pants, 7=dress,
+# 8=belt, 9=left-shoe, 10=right-shoe, 16=bag, 17=scarf
 
 FRIENDLY_NAMES = {
     1: "Hat", 3: "Sunglasses", 4: "Top / Upper Wear",
     5: "Skirt", 6: "Pants", 7: "Dress", 8: "Belt",
+    9: "Footwear", 10: "Footwear",
     16: "Bag", 17: "Scarf / Accessory"
 }
 
