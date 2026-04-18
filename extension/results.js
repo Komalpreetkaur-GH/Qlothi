@@ -8,7 +8,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let allItems = [];
+    let savedLinks = new Set();
     const grid = document.getElementById('results-grid');
+
+    // Pre-load wishlist states
+    chrome.storage.local.get({ qlothi_wishlist: [] }, (result) => {
+        result.qlothi_wishlist.forEach(item => savedLinks.add(item.link));
+        
+        chrome.storage.local.get(['qlothi_current_search'], (sRes) => {
+            if (!sRes.qlothi_current_search) {
+                document.getElementById('item-query').textContent = "No item selected.";
+                return;
+            }
+            doVisualSearch(sRes.qlothi_current_search.item || 'Fashion Item', sRes.qlothi_current_search.img || '', sRes.qlothi_current_search.bbox);
+        });
+    });
 
     const renderItems = (filter = 'all') => {
         grid.innerHTML = '';
@@ -33,7 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const storeInitial = (item.store || item.name || '?')[0].toUpperCase();
+            const isSaved = savedLinks.has(item.link);
+            
             card.innerHTML = `
+                <button class="wishlist-btn ${isSaved ? 'saved' : ''}" aria-label="Save to Wishlist">${isSaved ? '♥️' : '🤍'}</button>
                 <div class="p-img-box">
                     <img src="${item.image}" alt="${item.name}" 
                          onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffecd2,#fcb69f);font-size:64px;font-weight:900;color:rgba(0,0,0,0.15);&quot;>${storeInitial}</div>'">
@@ -52,6 +69,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+            
+            const heartBtn = card.querySelector('.wishlist-btn');
+            heartBtn.addEventListener('click', () => {
+                chrome.storage.local.get({ qlothi_wishlist: [] }, (res) => {
+                    let list = res.qlothi_wishlist;
+                    if (savedLinks.has(item.link)) {
+                        // Remove
+                        list = list.filter(i => i.link !== item.link);
+                        savedLinks.delete(item.link);
+                        heartBtn.classList.remove('saved');
+                        heartBtn.textContent = '🤍';
+                    } else {
+                        // Add
+                        list.push(item);
+                        savedLinks.add(item.link);
+                        heartBtn.classList.add('saved');
+                        heartBtn.textContent = '♥️';
+                    }
+                    chrome.storage.local.set({ qlothi_wishlist: list });
+                });
+            });
             
             grid.appendChild(card);
             
@@ -119,17 +157,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    chrome.storage.local.get(['qlothi_current_search'], (result) => {
-        if (!result.qlothi_current_search) {
-            document.getElementById('item-query').textContent = "No item selected.";
-            return;
-        }
-
-        const data = result.qlothi_current_search;
-        const itemName = data.item || 'Fashion Item';
-        const sourceImg = data.img || '';
-        const bbox = data.bbox; 
-
-        doVisualSearch(itemName, sourceImg, bbox);
-    });
+    // Search triggering is now handled at the top inside the wishlist pre-load callback
 });

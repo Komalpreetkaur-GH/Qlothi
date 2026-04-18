@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qlothi Wardrobe</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Qlothi<span>.</span></div>
+        <div class="header-text">Virtual Wardrobe</div>
+    </header>
+
+    <main class="container">
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">👗</div>
+            <h3>Your wardrobe is empty</h3>
+            <p>Go to Pinterest and click on any fashion item to start saving outfits you love!</p>
+        </div>
+        
+        <div id="wardrobe-grid" class="wardrobe-grid">
+            <!-- Items injected by popup.js -->
+        </div>
+    </main>
+
+    <script src="popup.js"></script>
+</body>
+</html>
