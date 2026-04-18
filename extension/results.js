@@ -135,22 +135,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Display the full image in the sidebar per user request
                 document.getElementById('source-image').src = response.base64_image;
 
-                // Send POST to backend via proxy
-                chrome.runtime.sendMessage({ action: "visualSearch", base64_image: croppedBase64 }, (res) => {
-                    document.getElementById('item-query').textContent = itemName;
-                    if (res && res.success) {
-                        const data = res.data;
-                        if (data.status === 'success' && data.items) {
-                            allItems = data.items;
-                            renderItems();
-                        } else {
-                            grid.innerHTML = '<p style="color:red;padding:20px;">Backend Error: ' + (data.message || 'Unknown error') + '</p>';
-                        }
+                document.getElementById('item-query').textContent = "AI analyzing style...";
+                
+                // Fetch AI Semantic Caption first
+                fetch('https://komalsohal-qlothi.hf.space/caption', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ base64_image: croppedBase64 })
+                }).then(r => r.json()).catch(() => ({ caption: "" })).then(capRes => {
+                    const captionStr = capRes.caption || "";
+                    if (captionStr) {
+                         document.getElementById('item-query').textContent = captionStr;
                     } else {
-                        console.error("Backend Proxy Error:", res ? res.error : 'Unknown error');
-                        document.getElementById('item-query').textContent = "Connection Failed";
-                        grid.innerHTML = '<p style="color:red;padding:20px;">Could not connect to Qlothi Backend. Make sure it is running. Error: ' + (res ? res.error : 'Unknown') + '</p>';
+                         document.getElementById('item-query').textContent = "Scanning the web...";
                     }
+
+                    // Send POST to background for multimodal Google Lens hunt
+                    chrome.runtime.sendMessage({ action: "visualSearch", base64_image: croppedBase64, caption: captionStr }, (res) => {
+                        if (res && res.success) {
+                            const data = res.data;
+                            if (data.status === 'success' && data.items) {
+                                allItems = data.items;
+                                renderItems();
+                            } else {
+                                grid.innerHTML = '<p style="color:red;padding:20px;">Backend Error: ' + (data.message || 'Unknown error') + '</p>';
+                            }
+                        } else {
+                            console.error("Backend Proxy Error:", res ? res.error : 'Unknown error');
+                            document.getElementById('item-query').textContent = "Connection Failed";
+                            grid.innerHTML = '<p style="color:red;padding:20px;">Could not connect to Qlothi Backend. Make sure it is running. Error: ' + (res ? res.error : 'Unknown') + '</p>';
+                        }
+                    });
                 });
             };
             img.src = response.base64_image;

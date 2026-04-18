@@ -29,6 +29,13 @@ fashion_model = AutoModelForSemanticSegmentation.from_pretrained("mattmdjaga/seg
 fashion_model.eval()
 print("Fashion model loaded!")
 
+print("Loading BLIP captioning model (first run downloads ~950MB)...")
+from transformers import BlipProcessor, BlipForConditionalGeneration
+blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+blip_model.eval()
+print("BLIP model loaded!")
+
 # ATR label map produced by mattmdjaga/segformer_b2_clothes
 LABEL_MAP = {
     0: "background", 1: "hat", 2: "hair", 3: "sunglasses",
@@ -184,6 +191,41 @@ async def analyze_outfit(request: AnalyzeRequest):
             "status": "error",
             "message": f"Backend Error: {str(e)}",
             "items": [],
+        }
+
+@app.post("/caption")
+async def caption_image(request: AnalyzeRequest):
+    print(f"Captioning image of length: {len(request.base64_image)}")
+    try:
+        base64_data = request.base64_image
+        if base64_data.startswith('data:image'):
+            base64_data = base64_data.split(',')[1]
+
+        image_bytes = base64.b64decode(base64_data)
+        img = Image.open(BytesIO(image_bytes)).convert("RGB")
+        
+        # BLIP text prefix to explicitly guide generation for clothes
+        text = "a photograph of a "
+        inputs = blip_processor(img, text, return_tensors="pt")
+        
+        with torch.no_grad():
+            out = blip_model.generate(**inputs, max_new_tokens=20)
+            
+        caption_text = blip_processor.decode(out[0], skip_special_tokens=True)
+        print(f"Generated Caption: {caption_text}")
+        
+        # Strip generic prefixes occasionally produced
+        clean_caption = caption_text.replace("a photograph of a ", "").replace("a ", "").strip()
+        
+        return {
+            "status": "success",
+            "caption": clean_caption
+        }
+    except Exception as e:
+        print(f"Caption Error: {e}")
+        return {
+            "status": "error",
+            "caption": ""
         }
 
 @app.get("/", response_class=HTMLResponse)

@@ -28,7 +28,7 @@ function delay(ms) {
 }
 
 // Heavily Optimized Browser Scraper
-async function performOptimizedLensSearch(base64Image) {
+async function performOptimizedLensSearch(base64Image, captionText = "") {
   let lensTabId = null;
   const hardTimeout = setTimeout(() => {
     if (lensTabId) {
@@ -139,12 +139,14 @@ async function performOptimizedLensSearch(base64Image) {
     }
 
     // 3. Inject extraction poller
-    console.log("[Qlothi] Extracting data using active poller...");
+    console.log(`[Qlothi] Extracting data using active poller... (Caption: ${captionText})`);
     const scrapeResult = await chrome.scripting.executeScript({
       target: { tabId: lensTabId },
-      func: async () => {
+      args: [captionText],
+      func: async (captionStr) => {
         return new Promise((resolve) => {
           let attempts = 0;
+          let hasInjectedText = false;
           
           // Helper functions
           function extractPrice(text) {
@@ -207,6 +209,28 @@ async function performOptimizedLensSearch(base64Image) {
               clearInterval(poller);
               resolve([]);
               return;
+            }
+
+            // 1. Secret Caption Semantic Injection!
+            if (captionStr && !hasInjectedText) {
+                const searchInput = document.querySelector('textarea[aria-label="Add to your search"], input[aria-label="Add to your search"], form input[type="text"]');
+                if (searchInput && searchInput.getBoundingClientRect().height > 0) {
+                    searchInput.value = captionStr;
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    const searchBtn = document.querySelector('button[aria-label="Search"], button[type="submit"]');
+                    if (searchBtn) {
+                        searchBtn.click();
+                    } else {
+                        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+                    }
+                    
+                    hasInjectedText = true;
+                    console.log("[Qlothi] Successfully injected multimodal semantic prompt into Google Lens!");
+                    
+                    // Pause scraping this cycle to let the HTTP refresh trigger
+                    return; 
+                }
             }
 
             // Click "Products" tab relentlessly until we get results
@@ -363,7 +387,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "visualSearch") {
     // Call our newly optimized browser scraper!
     console.log("[Qlothi] Launching Optimized Browser Scraper...");
-    performOptimizedLensSearch(request.base64_image).then(sendResponse);
+    performOptimizedLensSearch(request.base64_image, request.caption || "").then(sendResponse);
     return true;
   }
 });
